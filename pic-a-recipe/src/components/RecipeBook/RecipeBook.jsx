@@ -1,4 +1,3 @@
-import './RecipeBook.css';
 import HTMLFlipBook from 'react-pageflip';
 import RecipePage from '../RecipePage/RecipePage';
 import CoverPage from '../CoverPage/CoverPage';
