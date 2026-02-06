@@ -20,7 +20,7 @@ const RecipePage = React.forwardRef(({recipe, number}, ref) => {
           <p className='mv2 tl lh-copy paragraph'>{parse(recipe.summary.join(' '))}</p>
           <div className='recipe-details'>
             {Object.entries(recipe.info).map(([key, value], i) => (
-              <span key={i} className='bold'>
+              <span key={`${recipe.id}-${i}`} className='bold'>
                 <span>{key.charAt(0).toUpperCase() + key.slice(1)}: </span>
                 <span>{value}</span>
               </span>
