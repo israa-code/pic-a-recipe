@@ -1,13 +1,8 @@
 import './CreateRecipeButton.css';
-import {useEffect} from 'react';
 
-const CreateRecipeButton = ({dataIngredient, dataRecipe, setDataRecipe}) => {
+const CreateRecipeButton = ({dataIngredient, setDataRecipe, onLoading}) => {
     const KEY = import.meta.env.VITE_KEY;
     const ingredients = dataIngredient.join(',');
-
-    useEffect(() => {
-        console.log('Updated dataRecipe:', dataRecipe);
-    }, [dataRecipe]); 
 
     //returns an array of the requested sentences
     const extractSentences = (str, num) => {
@@ -56,6 +51,7 @@ const CreateRecipeButton = ({dataIngredient, dataRecipe, setDataRecipe}) => {
     //fetch recipe by ingredients and setDataRecipe
     const handleButtonClick = async () => {
         try {
+            onLoading(true);
             const response = await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredients}&number=10&ranking=1&ignorePantry=true&apiKey=${KEY}`)
             const recipeData = await response.json();
 
@@ -70,7 +66,9 @@ const CreateRecipeButton = ({dataIngredient, dataRecipe, setDataRecipe}) => {
                 ...recipeData
                 });
             }
-            setDataRecipe(finalDataRecipe);
+            setDataRecipe([...finalDataRecipe]);
+
+            onLoading(false);
 
         } catch(error) {
             console.log('Error handleButtonClick:', error);
