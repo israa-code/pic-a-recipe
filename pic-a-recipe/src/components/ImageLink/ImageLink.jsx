@@ -25,7 +25,7 @@ const ImageLink = ({setImgUrl, imgUrl, setDataIng, dataIngredient}) => {
             const data = await response.json();
             console.log('Clarifai API Response:', data);
             //filter ing that has an accuracy value > 0.02 and setDataIng 
-            setDataIng(data.outputs[0].data.concepts.filter(ing => ing.value > 0.02).map(ing => ing.name));
+            setDataIng([...dataIngredient, ...data.outputs[0].data.concepts.filter(ing => ing.value > 0.02).map(ing => ing.name)]);
         } catch (error) {
             console.error('Error calling Clarifai API:', error);
         }
