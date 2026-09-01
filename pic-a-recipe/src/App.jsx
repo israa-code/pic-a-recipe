@@ -24,7 +24,7 @@ function App() {
     <>
       <Routes>
         <Route path='/' element={<Navigation isLoading={isLoading}/>}>
-          <Route index element={<Home dataRecipe={dataRecipe} setDataRecipe={setDataRecipe} onLoading={onLoading} />} />
+          <Route index element={<Home setDataRecipe={setDataRecipe} onLoading={onLoading} />} />
           <Route path='book' element={<Book dataRecipe={dataRecipe} />} />
         </Route>
       </Routes>
