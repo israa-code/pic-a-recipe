@@ -1,8 +1,10 @@
 import './CreateRecipeButton.css';
+import {useNavigate} from 'react-router-dom';
 
 const CreateRecipeButton = ({dataIngredient, setDataRecipe, onLoading}) => {
     const KEY = import.meta.env.VITE_KEY;
     const ingredients = dataIngredient.join(',');
+    const navigate = useNavigate();
 
     //returns an array of the requested sentences
     const extractSentences = (str, num) => {
@@ -69,9 +71,11 @@ const CreateRecipeButton = ({dataIngredient, setDataRecipe, onLoading}) => {
             setDataRecipe([...finalDataRecipe]);
 
             onLoading(false);
+            navigate('/book');
 
         } catch(error) {
             console.log('Error handleButtonClick:', error);
+            onLoading(false);
         }
     }
     return (
