@@ -6,6 +6,15 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 
+// CUSTOM ERROR CLASS for handling errors within an HTTP response
+class AppError extends Error {
+    constructor(message, statusCode) {
+        super(message);
+        this.name = this.constructor.name;
+        this.statusCode = statusCode;
+    }
+}
+
 // SECURITY: Improve File Validation 
 // FILE UPLOAD VALIDATION
 const fileFilter = (req, file, cb) => {
@@ -14,11 +23,10 @@ const fileFilter = (req, file, cb) => {
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        const error = new Error(`${file.mimetype} is not allowed. Allowed types are JPEG, PNG, WebP, HEIC, and HEIF.`);
-        error.statusCode = 400;
-        cb(error);
+        cb(new AppError(`${file.mimetype} is not allowed. Allowed types are JPEG, PNG, WebP, HEIC, and HEIF.`, 400));
     }
-};
+}
+
 
 // MULTER FILE UPLOAD CONFIGURATION
 const upload = multer({ 
@@ -117,6 +125,32 @@ app.post('/gemini', upload.single('image'), async (req, res) => {
             }
         }
     }
+});
+
+// ERROR HANDLING MIDDLEWARE
+app.use((error, req, res, next) => {
+    if (res.headersSent) { //check if response headers have already been sent
+        return next(error); 
+    }
+
+    if (error instanceof AppError) { //check AppError 
+        return res.status(error.statusCode).json({ error: error.message });
+    }
+
+    if (error instanceof multer.MulterError) { //check multer error
+        const statusCode = error.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+        const message = error.code === 'LIMIT_FILE_SIZE'
+            ? 'Image must be 10 MB or smaller.'
+            : 'Invalid image upload.';
+        return res.status(statusCode).json({ error: message });
+    }
+
+    if (error.status === 400) { //check for bad request errors
+        return res.status(400).json({ error: 'Invalid request.' });
+    }
+
+    console.error('Unhandled server error:', error); //log any unhandled errors for debugging purposes
+    return res.status(500).json({ error: 'Internal server error.' });
 });
 
 app.listen(PORT, () => {
