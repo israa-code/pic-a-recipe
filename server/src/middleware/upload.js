@@ -7,7 +7,7 @@ const fileFilter = (req, file, cb) => {
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new AppError(`${file.mimetype} is not allowed. Allowed types are JPEG, PNG, WebP, HEIC, and HEIF.`, 400));
+        cb(new AppError(`This file type is not allowed. Allowed types are JPEG, PNG, WebP, HEIC, and HEIF.`, 400));
     }
 };
 
