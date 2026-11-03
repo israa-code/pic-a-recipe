@@ -1,52 +1,72 @@
 import { useState, useEffect } from 'react';
-import './ImageLink.css'
+import './ImageLink.css'    
+const API_URL = import.meta.env.VITE_API_URL;
 
-const ImageLink = ({setImgUrl, imgUrl, setDataIng, dataIngredient}) => { 
-    const API_URL = import.meta.env.VITE_API_URL;
+const ImageLink = ({setImgUrl, setDataIng, dataIngredient}) => { 
+    const [file, setFile] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(''); 
     //state changes       
-    useEffect(() => {
-        console.log('imgUrl updated: ', imgUrl);
-    }, [imgUrl]);
     useEffect(() => {
         console.log('dataIngredient updated: ', dataIngredient);
     }, [dataIngredient]);
 
-    //fetch data ingredients through backend server
-    const onButtonSubmit = () => {  
-        const handleClarifaiRequest = async (imgUrl) => {
-        try {
-            const response = await fetch(`${API_URL}/clarifai`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ imageUrl: imgUrl })
-            });
-            const data = await response.json();
-            console.log('Clarifai API Response:', data);
-            //filter ing that has an accuracy value > 0.02 and setDataIng 
-            setDataIng([...dataIngredient, ...data.outputs[0].data.concepts.filter(ing => ing.value > 0.02).map(ing => ing.name)]);
-        } catch (error) {
-            console.error('Error calling Clarifai API:', error);
+    //The backend handles the request to Gemini and returns the detected ingredients so the API key is secure. 
+    const onButtonSubmit = async () => { 
+        if (!file) {
+            setErrorMessage('Please select an image first.');
+            return;
         }
-        };
-        handleClarifaiRequest(imgUrl);
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await fetch(`${API_URL}/api/gemini`, {
+            method: 'POST',
+            /* No Content-Type header: the browser sets multipart/form-data
+               with the correct boundary when the body is FormData. */
+            body: formData,
+            });
+
+            if (!response.ok) {
+                const body = await response.json();
+                throw new Error(body.error || `Request failed with status ${response.status}`);
+            }
+
+            const list = await response.json();
+            setDataIng([...dataIngredient, ...list.ingredients]);
+
+        } catch (error) {
+            setErrorMessage(error.message || 'An error occurred while detecting ingredients.');
+            console.error('Error calling Gemini:', error);
+        }
     }
-    //set img url value 
-    const handleImgUrl = (event) => {
-        setImgUrl(event.target.value);
+
+    const handleImageData = (event) => {
+        const selected = event.target.files[0];
+        if (!selected) return; // user cancelled the picker
+        
+        setFile(selected);
+        setImgUrl(URL.createObjectURL(selected)); 
     }
     return (
         <div>
             <p className='f4 black mt2'>
-                {'This will detect ingredients in your picture. Give it a try.'}
+                This will detect ingredients in your picture. Give it a try.
             </p>
-            <div className='center'> 
+            <div className='center flex flex-column'> 
                 <div className='center pa3 br3 shadow-5 box'>
-                    <input onInput={handleImgUrl} type='text' placeholder='URL' className='f5 pa1 w-80 ' />
-                    <button onClick={onButtonSubmit}  className='w-20 grow f5 link ph2 pv1 white br1 bg-green b--dark-green'>Detect</button>
-                </div>   
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={handleImageData} />
+                    <button type="button" onClick={onButtonSubmit}  className='w-20 grow f5 link ph2 pv1 white br1 bg-green b--dark-green'>Detect</button>
+                </div>
             </div>
+            {errorMessage && <p className='error-message'>{errorMessage}
+                                <button 
+                                type="button" 
+                                aria-label="Delete error message" 
+                                className='error-dismiss-btn' 
+                                onClick={() => setErrorMessage('')}>✖</button>
+                             </p>}  
         </div>
     );
 }
