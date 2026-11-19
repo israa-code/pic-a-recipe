@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import './ImageLink.css'    
+import CameraCapture from '../CameraCapture/CameraCapture.jsx';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const ImageLink = ({setImgUrl, setDataIng, dataIngredient}) => { 
     const [file, setFile] = useState(null);
     const [errorMessage, setErrorMessage] = useState(''); 
+    const [cameraActive, setCameraActive] = useState(false);
     //state changes       
     useEffect(() => {
         console.log('dataIngredient updated: ', dataIngredient);
@@ -44,7 +46,8 @@ const ImageLink = ({setImgUrl, setDataIng, dataIngredient}) => {
 
     const handleImageData = (event) => {
         const selected = event.target.files[0];
-        if (!selected) return; // user cancelled the picker
+        // user cancelled the picker
+        if (!selected) return; 
         
         setFile(selected);
         setImgUrl(URL.createObjectURL(selected)); 
@@ -56,10 +59,19 @@ const ImageLink = ({setImgUrl, setDataIng, dataIngredient}) => {
             </p>
             <div className='center flex flex-column'> 
                 <div className='center pa3 br3 shadow-5 box'>
+                    <button type="button" onClick={() => setCameraActive(true)} >Camera</button>
                     <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={handleImageData} />
                     <button type="button" onClick={onButtonSubmit}  className='w-20 grow f5 link ph2 pv1 white br1 bg-green b--dark-green'>Detect</button>
                 </div>
             </div>
+            {cameraActive && (
+            <>
+                <CameraCapture />
+                <button type="button" onClick={() => setCameraActive(false)}>
+                    Close Camera
+                </button>
+            </>
+            )}
             {errorMessage && <p className='error-message'>{errorMessage}
                                 <button 
                                 type="button" 
